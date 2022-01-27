@@ -14,7 +14,9 @@ public enum WeaponType
 
 public class PlayerControllerScript : MonoBehaviour
 {
-    Vector2 screenSize;
+    
+    public float baseFOV = 60, currentFOV, jumpForce = 9f;
+
 
     float VeryLowPushBack = 0.5f,
           LowPushBack = 0.8f,
@@ -22,15 +24,15 @@ public class PlayerControllerScript : MonoBehaviour
           HighPushBack = 1.5f,
           VeryHighPushBack = 2.5f;
 
-    float autoRifleReloadSpeed = 2.4f,  shotgunReloadSpeed = 0.8f,  revolverReloadSpeed = 0.6f, sniperReloadSpeed = 1.5f;
+    float autoRifleReloadSpeed = 2.2f,  shotgunReloadSpeed = 0.8f,  revolverReloadSpeed = 0.6f, sniperReloadSpeed = 1.5f;
     int   autoRifleReloadAmount = 0,    shotgunReloadAmount = 1,    revolverReloadAmount = 1,   sniperReloadAmount = 0;
     int   autoRifleMaxMag = 50,         shotgunMaxMag = 3,          revolverMaxMag = 6,         sniperMaxMag = 4;
     bool  autoUnlocked = false,         shotgunUnlocked = false,                                sniperUnlocked = false,     swordUnlocked = false;
-    int unlockedWeaponTypes = 0;
+    public int unlockedWeaponTypes = 0;
 
     float shootLockOutTimer = 0f, maxMagSize, currentMag;
 
-    bool canJump = true, canShoot = false, reloading = false;
+    public bool canJump = true, canShoot = false, reloading = false;
     [HideInInspector]
     public GameObject bulletSpawnPoint;
     [HideInInspector]
@@ -46,18 +48,14 @@ public class PlayerControllerScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        screenSize.x = Screen.width;
-        screenSize.y = Screen.height;
+        gameObject.transform.GetChild(0).GetComponent<Camera>().fieldOfView = baseFOV;
+        currentFOV = baseFOV;
         rb = gameObject.GetComponent<Rigidbody>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        //rotate towards the camera's direction
-        gameObject.transform.rotation = Quaternion.Euler(Mathf.Clamp(Input.mousePosition.y - screenSize.y / 2, -70f, 80f) * -1, Input.mousePosition.x - screenSize.x / 2, 0);
-
-
         if (shootLockOutTimer < 0)
             canShoot = true;
         else
@@ -163,7 +161,8 @@ public class PlayerControllerScript : MonoBehaviour
             //jump
             if (canJump)
             {
-                rb.AddForce(new Vector3(0, 5, 0), ForceMode.Impulse);
+                Debug.Log("try jumping");
+                rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
                 canJump = false;
             }
         }
@@ -178,9 +177,18 @@ public class PlayerControllerScript : MonoBehaviour
         if(Input.GetMouseButton(1))
         {
             //ADS
+            currentFOV = Mathf.Lerp(currentFOV, baseFOV - 20, Time.deltaTime);
             forceMult -= 0.25f;
         }
-        if(Input.GetMouseButton(0) && canShoot)
+        else
+        {
+            //release ADS
+            currentFOV = Mathf.Lerp(currentFOV, baseFOV, Time.deltaTime);
+        }
+        Mathf.Clamp(currentFOV, baseFOV - 20, baseFOV);
+        gameObject.transform.GetChild(0).GetComponent<Camera>().fieldOfView = currentFOV;
+
+        if (Input.GetMouseButton(0) && canShoot)
         {
             if (currentMag > 0)
                 shoot();
@@ -270,11 +278,12 @@ public class PlayerControllerScript : MonoBehaviour
                     
                     bulletScript scr = bullet.gameObject.GetComponent<bulletScript>();
                     scr.damage = 2.0f;
-                    scr.gameObject.GetComponent<Rigidbody>().velocity = (transform.forward.normalized + bulletSpread) * 3f;
-                    scr.lifetime = 2.5f;
+                    scr.gameObject.GetComponent<Rigidbody>().velocity = (transform.GetChild(0).transform.forward.normalized + bulletSpread) * 3f;
+                    scr.dir = (transform.GetChild(0).transform.forward.normalized + bulletSpread) * 3f;
+                    scr.lifetime = 4.5f;
                     
                     //apply pushback to player
-                    rb.AddForce(MedPushBack * forceMult * transform.forward * -1, ForceMode.Impulse);
+                    rb.AddForce(MedPushBack * forceMult * transform.GetChild(0).transform.forward * -1, ForceMode.Impulse);
 
                     //set lockout for shooting again
                     canShoot = false;
@@ -292,11 +301,12 @@ public class PlayerControllerScript : MonoBehaviour
 
                     bulletScript scr = bullet.gameObject.GetComponent<bulletScript>();
                     scr.damage = 2.0f;
-                    scr.gameObject.GetComponent<Rigidbody>().velocity = (transform.forward.normalized + bulletSpread) * 3f;
-                    scr.lifetime = 1.8f;
+                    scr.gameObject.GetComponent<Rigidbody>().velocity = (transform.GetChild(0).transform.forward.normalized + bulletSpread) * 3f;
+                    scr.dir = (transform.GetChild(0).transform.forward.normalized + bulletSpread) * 3f;
+                    scr.lifetime = 3.8f;
 
                     //apply pushback to player
-                    rb.AddForce(VeryLowPushBack * forceMult * transform.forward * -1, ForceMode.Impulse);
+                    rb.AddForce(VeryLowPushBack * forceMult * transform.GetChild(0).transform.forward * -1, ForceMode.Impulse);
 
                     //set lockout for shooting again
                     canShoot = false;
@@ -311,8 +321,9 @@ public class PlayerControllerScript : MonoBehaviour
 
                     bulletScript scr = bullet.gameObject.GetComponent<bulletScript>();
                     scr.damage = 2.0f;
-                    scr.gameObject.GetComponent<Rigidbody>().velocity = (transform.forward.normalized) * 3f;
-                    scr.lifetime = 1.15f;
+                    scr.gameObject.GetComponent<Rigidbody>().velocity = (transform.GetChild(0).transform.forward.normalized) * 3f;
+                    scr.dir = (transform.GetChild(0).transform.forward.normalized) * 3f;
+                    scr.lifetime = 2.65f;
 
                     Vector3 bulletSpread;
                     //create bullet
@@ -324,11 +335,12 @@ public class PlayerControllerScript : MonoBehaviour
 
                         scr = bullet.gameObject.GetComponent<bulletScript>();
                         scr.damage = 2.0f;
-                        scr.gameObject.GetComponent<Rigidbody>().velocity = (transform.forward.normalized + bulletSpread) * 3f;
-                        scr.lifetime = 1.05f;
+                        scr.gameObject.GetComponent<Rigidbody>().velocity = (transform.GetChild(0).transform.forward.normalized + bulletSpread) * 3f;
+                        scr.dir = (transform.GetChild(0).transform.forward.normalized + bulletSpread) * 3f;
+                        scr.lifetime = 2.55f;
                     }
                     //apply pushback to player
-                    rb.AddForce(VeryHighPushBack * forceMult * transform.forward * -1, ForceMode.Impulse);
+                    rb.AddForce(VeryHighPushBack * forceMult * transform.GetChild(0).transform.forward * -1, ForceMode.Impulse);
 
                     //set lockout for shooting again
                     canShoot = false;
@@ -346,11 +358,12 @@ public class PlayerControllerScript : MonoBehaviour
 
                     bulletScript scr = bullet.gameObject.GetComponent<bulletScript>();
                     scr.damage = 6.0f;
-                    scr.gameObject.GetComponent<Rigidbody>().velocity = (transform.forward.normalized + bulletSpread) * 3f;
-                    scr.lifetime = 1.8f;
+                    scr.gameObject.GetComponent<Rigidbody>().velocity = (transform.GetChild(0).transform.forward.normalized + bulletSpread) * 3f;
+                    scr.dir = (transform.GetChild(0).transform.forward.normalized + bulletSpread) * 3f;
+                    scr.lifetime = 4.8f;
 
                     //apply pushback to player
-                    rb.AddForce(LowPushBack * forceMult * transform.forward * -1, ForceMode.Impulse);
+                    rb.AddForce(LowPushBack * forceMult * transform.GetChild(0).transform.forward * -1, ForceMode.Impulse);
 
                     //set lockout for shooting again
                     canShoot = false;
@@ -366,11 +379,12 @@ public class PlayerControllerScript : MonoBehaviour
 
                     bulletScript scr = bullet.gameObject.GetComponent<bulletScript>();
                     scr.damage = 6.0f;
-                    scr.gameObject.GetComponent<Rigidbody>().velocity = (transform.forward.normalized) * 3f;
+                    scr.gameObject.GetComponent<Rigidbody>().velocity = (transform.GetChild(0).transform.forward.normalized) * 3f;
+                    scr.dir = (transform.GetChild(0).transform.forward.normalized) * 3f;
                     scr.lifetime = 0.03f;
 
                     //apply pushback to player
-                    rb.AddForce(HighPushBack * forceMult * transform.forward, ForceMode.Impulse);
+                    rb.AddForce(HighPushBack * forceMult * transform.GetChild(0).transform.forward, ForceMode.Impulse);
 
                     //set lockout for shooting again
                     canShoot = false;
