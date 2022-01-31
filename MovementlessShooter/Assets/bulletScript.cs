@@ -8,7 +8,7 @@ public class bulletScript : MonoBehaviour
     public float lifetime;
     public Vector3 dir;
 
-    Vector3 colStartPos;
+    public Vector3 colStartPos;
 
     // Start is called before the first frame update
     void Start()
@@ -26,13 +26,13 @@ public class bulletScript : MonoBehaviour
 
     private void OnTriggerEnter(Collider col)
     {
-        
-        switch(col.gameObject.tag)
+        colStartPos = gameObject.transform.position;
+
+        switch (col.gameObject.tag)
         {
             case "Enemy":
                 {
                     //damage the enemy
-                    colStartPos = gameObject.transform.position;
                     break;
                 }
             case "Ground":
@@ -43,7 +43,6 @@ public class bulletScript : MonoBehaviour
             case "Switch":
                 {
                     //activate the switch
-                    colStartPos = gameObject.transform.position;
                     break;
                 }
         }
@@ -60,6 +59,7 @@ public class bulletScript : MonoBehaviour
     void checkPierce()
     {
         float dist = distance(transform.position, colStartPos);
+        Debug.Log(dist);
         if (dist < (damage - 1f))
             damage -= 1f;
         else
