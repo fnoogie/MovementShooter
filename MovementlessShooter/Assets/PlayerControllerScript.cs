@@ -27,6 +27,7 @@ public class PlayerControllerScript : MonoBehaviour
     float autoRifleReloadSpeed = 2.2f,  shotgunReloadSpeed = 0.8f,  revolverReloadSpeed = 0.6f, sniperReloadSpeed = 1.5f;
     int   autoRifleReloadAmount = 0,    shotgunReloadAmount = 1,    revolverReloadAmount = 1,   sniperReloadAmount = 0;
     int   autoRifleMaxMag = 50,         shotgunMaxMag = 3,          revolverMaxMag = 6,         sniperMaxMag = 4;
+    public 
     bool  autoUnlocked = false,         shotgunUnlocked = false,                                sniperUnlocked = false,     swordUnlocked = false;
     public int unlockedWeaponTypes = 0;
 
@@ -37,7 +38,8 @@ public class PlayerControllerScript : MonoBehaviour
     public GameObject bulletSpawnPoint;
     [HideInInspector]
     public GameObject bulletPreFab;
-    WeaponType equipWeaponType = WeaponType.Revolver;
+    [HideInInspector]
+    public WeaponType equipWeaponType = WeaponType.Revolver;
     float baseForceMult = 1.0f, forceMult = 1.0f;
 
     Rigidbody rb;
@@ -60,6 +62,17 @@ public class PlayerControllerScript : MonoBehaviour
             canShoot = true;
         else
             shootLockOutTimer -= Time.deltaTime;
+
+
+        unlockedWeaponTypes = 0;
+        if (autoUnlocked)
+            unlockedWeaponTypes = 1;
+        if (shotgunUnlocked)
+            unlockedWeaponTypes = 2;
+        if (sniperUnlocked)
+            unlockedWeaponTypes = 3;
+        if (swordUnlocked)
+            unlockedWeaponTypes = 4;
 
         switch(equipWeaponType)
         {
