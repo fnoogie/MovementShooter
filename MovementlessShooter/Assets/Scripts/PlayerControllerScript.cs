@@ -44,7 +44,6 @@ public class PlayerControllerScript : MonoBehaviour
 
     Rigidbody rb;
 
-    [HideInInspector]
     public TextMeshProUGUI wepText, ammoText;
 
     // Start is called before the first frame update
